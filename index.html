@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Record System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f4ef;
+  --card: #ffffff;
+  --ink: #1a1410;
+  --ink2: #6b5e52;
+  --orange: #e8521a;
+  --orange-light: rgba(232,82,26,0.1);
+  --border: rgba(26,20,16,0.1);
+  --green: #1a7a4a;
+  --green-light: rgba(26,122,74,0.1);
+  --red: #c0392b;
+  --red-light: rgba(192,57,43,0.1);
+  --gold: #c9a84c;
+  --shadow: 0 4px 24px rgba(0,0,0,0.07);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+/* HEADER */
+header {
+  background: var(--ink);
+  padding: 1.2rem 2.5rem;
+  display: flex; justify-content: space-between; align-items: center;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; color: white; letter-spacing: -0.5px; }
+.logo em { color: var(--orange); font-style: normal; }
+.header-meta { font-size: 0.8rem; color: rgba(255,255,255,0.4); font-weight: 300; }
+#student-count { color: var(--orange); font-weight: 600; }
+
+main { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+/* TABS */
+.tabs {
+  display: flex; gap: 0; margin-bottom: 2rem;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 0.4rem; width: fit-content;
+}
+.tab-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700;
+  padding: 0.6rem 1.4rem; border-radius: 8px; color: var(--ink2);
+  transition: background 0.2s, color 0.2s;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.tab-btn.active { background: var(--ink); color: white; }
+.tab-btn:not(.active):hover { background: var(--bg); color: var(--ink); }
+
+/* STATS */
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; margin-bottom: 2rem; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
+.stat-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+.stat-icon.orange { background: var(--orange-light); }
+.stat-icon.green  { background: var(--green-light); }
+.stat-icon.blue   { background: rgba(26,100,200,0.08); }
+.stat-icon.gold   { background: rgba(201,168,76,0.12); }
+.stat-val { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--ink); line-height: 1; }
+.stat-lbl { font-size: 0.75rem; color: var(--ink2); font-weight: 300; margin-top: 0.2rem; }
+
+/* TOOLBAR */
+.toolbar { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+.search-box { flex: 1; min-width: 200px; position: relative; }
+.search-box input {
+  width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.75rem 1rem 0.75rem 2.8rem; font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem; color: var(--ink); outline: none; transition: border-color 0.2s;
+}
+.search-box input:focus { border-color: var(--orange); }
+.search-icon { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); color: var(--ink2); font-size: 1rem; pointer-events: none; }
+.filter-select, .sort-select {
+  background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.75rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+  color: var(--ink); outline: none; cursor: pointer; transition: border-color 0.2s;
+}
+.filter-select:focus, .sort-select:focus { border-color: var(--orange); }
+.sort-select { min-width: 170px; }
+.btn-add {
+  background: var(--orange); color: white; border: none; border-radius: 10px;
+  padding: 0.75rem 1.5rem; font-family: 'Syne', sans-serif; font-size: 0.88rem;
+  font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.15s;
+  display: flex; align-items: center; gap: 0.5rem; white-space: nowrap;
+}
+.btn-add:hover { background: #c9420e; transform: translateY(-1px); }
+
+/* TABLE */
+.table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); }
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--ink); }
+thead th {
+  padding: 1rem 1.2rem; text-align: left;
+  font-family: 'Syne', sans-serif; font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.6);
+}
+.th-sortable { cursor: pointer; user-select: none; transition: color 0.2s; }
+.th-sortable:hover { color: var(--orange); }
+.sort-arrow { margin-left: 4px; opacity: 0.5; }
+.sort-arrow.active { opacity: 1; color: var(--orange); }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(232,82,26,0.03); }
+tbody td { padding: 1rem 1.2rem; font-size: 0.9rem; color: var(--ink); vertical-align: middle; }
+.td-name { font-weight: 500; }
+.td-id { font-family: 'Syne', sans-serif; font-size: 0.78rem; color: var(--orange); font-weight: 700; letter-spacing: 0.5px; }
+.td-branch {
+  display: inline-flex; align-items: center; background: var(--orange-light);
+  color: var(--orange); border-radius: 100px; padding: 0.25rem 0.7rem;
+  font-size: 0.75rem; font-weight: 500;
+}
+.cgpa-badge {
+  font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 0.9rem;
+}
+.cgpa-high { color: #1a7a4a; }
+.cgpa-mid  { color: #b07d00; }
+.cgpa-low  { color: #c0392b; }
+.td-actions { display: flex; gap: 0.5rem; }
+.btn-edit, .btn-del {
+  border: none; border-radius: 8px; padding: 0.4rem 0.9rem;
+  font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500;
+  cursor: pointer; transition: opacity 0.2s, transform 0.15s;
+}
+.btn-edit { background: var(--green-light); color: var(--green); }
+.btn-del  { background: var(--red-light); color: var(--red); }
+.btn-edit:hover, .btn-del:hover { opacity: 0.75; transform: scale(0.97); }
+.empty-state { text-align: center; padding: 4rem 2rem; color: var(--ink2); }
+.empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+.empty-state p { font-size: 0.95rem; font-weight: 300; }
+
+/* ===== ACHIEVERS TAB ===== */
+#tab-achievers { display: none; }
+.achievers-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+}
+.achievers-title { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--ink); }
+.achievers-subtitle { font-size: 0.88rem; color: var(--ink2); font-weight: 300; margin-top: 0.2rem; }
+.podium {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem; margin-bottom: 2rem; align-items: end;
+}
+.podium-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 1.5rem; text-align: center; position: relative; overflow: hidden;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.podium-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,0.1); }
+.podium-card.rank1 { border-color: var(--gold); order: 2; padding-top: 2rem; }
+.podium-card.rank2 { order: 1; }
+.podium-card.rank3 { order: 3; }
+.podium-card.rank1::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--gold), #f0d060, var(--gold));
+}
+.rank-badge {
+  width: 48px; height: 48px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; margin: 0 auto 1rem;
+  font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800;
+}
+.rank1 .rank-badge { background: linear-gradient(135deg,#f7d060,#c9a84c); color: white; width: 60px; height: 60px; font-size: 1.4rem; box-shadow: 0 4px 16px rgba(201,168,76,0.4); }
+.rank2 .rank-badge { background: linear-gradient(135deg,#c0c8d0,#8a9299); color: white; }
+.rank3 .rank-badge { background: linear-gradient(135deg,#d4956a,#a0674a); color: white; }
+.podium-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: var(--ink); margin-bottom: 0.3rem; }
+.podium-branch { font-size: 0.78rem; color: var(--ink2); font-weight: 300; margin-bottom: 0.8rem; }
+.podium-cgpa {
+  font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800;
+  color: var(--orange);
+}
+.rank1 .podium-cgpa { font-size: 2rem; color: var(--gold); }
+.podium-cgpa-lbl { font-size: 0.7rem; color: var(--ink2); font-weight: 300; letter-spacing: 1px; text-transform: uppercase; }
+.crown { font-size: 1.8rem; margin-bottom: 0.5rem; }
+
+/* ACHIEVERS TABLE */
+.achievers-table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); }
+.achievers-table-wrap table { width: 100%; border-collapse: collapse; }
+.achievers-table-wrap thead { background: linear-gradient(90deg, #1a1410, #2d2218); }
+.achievers-table-wrap tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+.achievers-table-wrap tbody tr:last-child { border-bottom: none; }
+.achievers-table-wrap tbody tr:hover { background: rgba(201,168,76,0.04); }
+.achievers-table-wrap tbody td { padding: 1rem 1.2rem; font-size: 0.9rem; }
+.rank-num {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem;
+  width: 36px; height: 36px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center;
+}
+.rank-num.r1 { background: linear-gradient(135deg,#f7d060,#c9a84c); color: white; box-shadow: 0 2px 8px rgba(201,168,76,0.4); }
+.rank-num.r2 { background: linear-gradient(135deg,#c0c8d0,#8a9299); color: white; }
+.rank-num.r3 { background: linear-gradient(135deg,#d4956a,#a0674a); color: white; }
+.rank-num.rn { background: var(--bg); color: var(--ink2); font-size: 0.85rem; }
+.medal { margin-left: 0.4rem; font-size: 1rem; }
+.cgpa-bar-wrap { display: flex; align-items: center; gap: 0.8rem; }
+.cgpa-bar-bg { flex: 1; height: 6px; background: var(--bg); border-radius: 100px; overflow: hidden; max-width: 120px; }
+.cgpa-bar-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--orange), #ff8c5a); }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500;
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+  opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s;
+}
+.modal-overlay.open { opacity: 1; visibility: visible; }
+.modal {
+  background: white; border-radius: 20px; padding: 2rem; width: 100%; max-width: 500px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.2); transform: translateY(20px); transition: transform 0.25s;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.8rem; }
+.modal-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 800; color: var(--ink); }
+.modal-close { background: var(--bg); border: none; border-radius: 8px; width: 32px; height: 32px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink2); transition: background 0.2s; }
+.modal-close:hover { background: var(--border); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.form-group.full { grid-column: 1 / -1; }
+.form-label { font-size: 0.75rem; font-weight: 500; color: var(--ink2); letter-spacing: 0.5px; text-transform: uppercase; }
+.form-input, .form-select {
+  background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 0.75rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+  color: var(--ink); outline: none; transition: border-color 0.2s, background 0.2s;
+}
+.form-input:focus, .form-select:focus { border-color: var(--orange); background: white; }
+.modal-footer { display: flex; gap: 0.8rem; margin-top: 1.8rem; justify-content: flex-end; }
+.btn-cancel { background: var(--bg); color: var(--ink2); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 1.5rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+.btn-cancel:hover { background: var(--border); }
+.btn-save { background: var(--orange); color: white; border: none; border-radius: 10px; padding: 0.75rem 1.8rem; font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.15s; }
+.btn-save:hover { background: #c9420e; transform: translateY(-1px); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 2rem; right: 2rem; background: var(--ink); color: white;
+  padding: 0.9rem 1.5rem; border-radius: 12px; font-size: 0.88rem; font-weight: 500;
+  display: flex; align-items: center; gap: 0.6rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2); transform: translateY(80px); opacity: 0;
+  transition: transform 0.3s, opacity 0.3s; z-index: 999; pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+@media (max-width: 700px) {
+  header { padding: 1rem 1.2rem; }
+  main { padding: 1.5rem 1rem; }
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-group.full { grid-column: 1; }
+  .podium { grid-template-columns: 1fr; }
+  .podium-card.rank1 { order: 0; }
+  .podium-card.rank2 { order: 1; }
+  .podium-card.rank3 { order: 2; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Student<em>.</em>DB</div>
+  <div class="header-meta">Total Students: <span id="student-count">0</span></div>
+</header>
+
+<main>
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('records')" id="tab-btn-records">📋 Records</button>
+    <button class="tab-btn" onclick="switchTab('achievers')" id="tab-btn-achievers">🏆 Achievers</button>
+  </div>
+
+  <!-- ===== RECORDS TAB ===== -->
+  <div id="tab-records">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon orange">👥</div>
+        <div><div class="stat-val" id="s-total">0</div><div class="stat-lbl">Total Students</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">🎓</div>
+        <div><div class="stat-val" id="s-branches">0</div><div class="stat-lbl">Branches</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">📅</div>
+        <div><div class="stat-val" id="s-years">0</div><div class="stat-lbl">Year Groups</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon gold">⭐</div>
+        <div><div class="stat-val" id="s-avg">—</div><div class="stat-lbl">Avg. CGPA</div></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Search by name, ID or branch...">
+      </div>
+      <select class="filter-select" id="filter-branch">
+        <option value="">All Branches</option>
+        <option>CSE</option><option>Cybersecurity</option><option>IT</option>
+        <option>ECE</option><option>ME</option><option>CE</option>
+      </select>
+      <select class="filter-select" id="filter-year">
+        <option value="">All Years</option>
+        <option>1st Year</option><option>2nd Year</option>
+        <option>3rd Year</option><option>4th Year</option>
+      </select>
+      <select class="sort-select" id="sort-cgpa">
+        <option value="">Sort by CGPA</option>
+        <option value="high">CGPA: High → Low</option>
+        <option value="low">CGPA: Low → High</option>
+      </select>
+      <button class="btn-add" onclick="openModal()">＋ Add Student</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Full Name</th>
+            <th>Branch</th>
+            <th>Year</th>
+            <th>Email</th>
+            <th class="th-sortable" onclick="toggleCgpaSort()" id="th-cgpa">
+              CGPA <span class="sort-arrow" id="sort-arrow">↕</span>
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state" style="display:none">
+        <div class="empty-icon">📭</div>
+        <p>No students found. Add one using the button above!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ACHIEVERS TAB ===== -->
+  <div id="tab-achievers" style="display:none">
+    <div class="achievers-header">
+      <div>
+        <div class="achievers-title">🏆 Achievers Board</div>
+        <div class="achievers-subtitle">Students ranked by CGPA — top performers highlighted</div>
+      </div>
+    </div>
+
+    <!-- PODIUM TOP 3 -->
+    <div class="podium" id="podium"></div>
+
+    <!-- FULL RANKED LIST -->
+    <div class="achievers-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="color:rgba(255,255,255,0.6);padding:1rem 1.2rem;font-family:'Syne',sans-serif;font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;">Rank</th>
+            <th style="color:rgba(255,255,255,0.6);padding:1rem 1.2rem;font-family:'Syne',sans-serif;font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;">Student</th>
+            <th style="color:rgba(255,255,255,0.6);padding:1rem 1.2rem;font-family:'Syne',sans-serif;font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;">Branch</th>
+            <th style="color:rgba(255,255,255,0.6);padding:1rem 1.2rem;font-family:'Syne',sans-serif;font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;">Year</th>
+            <th style="color:rgba(255,255,255,0.6);padding:1rem 1.2rem;font-family:'Syne',sans-serif;font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;">CGPA</th>
+          </tr>
+        </thead>
+        <tbody id="achievers-body"></tbody>
+      </table>
+      <div class="empty-state" id="achievers-empty" style="display:none">
+        <div class="empty-icon">🎓</div>
+        <p>No students with CGPA data yet. Add students with CGPA to see rankings!</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Add Student</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Student ID</label>
+        <input class="form-input" id="f-id" placeholder="e.g. 2024CS001">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="f-name" placeholder="e.g. Rahul Sharma">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Branch</label>
+        <select class="form-select" id="f-branch">
+          <option value="">Select Branch</option>
+          <option>CSE</option><option>Cybersecurity</option><option>IT</option>
+          <option>ECE</option><option>ME</option><option>CE</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Year</label>
+        <select class="form-select" id="f-year">
+          <option value="">Select Year</option>
+          <option>1st Year</option><option>2nd Year</option>
+          <option>3rd Year</option><option>4th Year</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" id="f-email" type="email" placeholder="student@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone</label>
+        <input class="form-input" id="f-phone" placeholder="10-digit number">
+      </div>
+      <div class="form-group">
+        <label class="form-label">CGPA</label>
+        <input class="form-input" id="f-cgpa" type="number" min="0" max="10" step="0.1" placeholder="e.g. 8.5">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveStudent()">Save Student</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon"></span>
+  <span id="toast-msg"></span>
+</div>
+
+<script>
+let students = JSON.parse(localStorage.getItem('srs_students') || '[]');
+let editingId = null;
+let cgpaSortDir = ''; // '', 'high', 'low'
+
+if (students.length === 0) {
+  students = [
+    { id:'2024CS001', name:'Priya Sharma',    branch:'CSE',           year:'2nd Year', email:'priya@example.com',   phone:'9876543210', cgpa:'8.9' },
+    { id:'2024CY002', name:'Devansh Gupta',   branch:'Cybersecurity', year:'1st Year', email:'devansh@riet.ac.in',  phone:'9812345678', cgpa:'8.2' },
+    { id:'2024IT003', name:'Aman Verma',      branch:'IT',            year:'3rd Year', email:'aman@example.com',    phone:'9898989898', cgpa:'7.6' },
+    { id:'2024EC004', name:'Neha Patel',      branch:'ECE',           year:'2nd Year', email:'neha@example.com',    phone:'9123456789', cgpa:'9.1' },
+    { id:'2024CS005', name:'Rohan Mehta',     branch:'CSE',           year:'3rd Year', email:'rohan@example.com',   phone:'9001234567', cgpa:'9.4' },
+    { id:'2024ME006', name:'Ananya Singh',    branch:'ME',            year:'1st Year', email:'ananya@example.com',  phone:'9887654321', cgpa:'7.2' },
+    { id:'2024CE007', name:'Vikas Joshi',     branch:'CE',            year:'4th Year', email:'vikas@example.com',   phone:'9765432100', cgpa:'8.6' },
+  ];
+  save();
+}
+
+function save() { localStorage.setItem('srs_students', JSON.stringify(students)); }
+
+function cgpaClass(v) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return 'cgpa-low';
+  if (n >= 8.5) return 'cgpa-high';
+  if (n >= 7.0) return 'cgpa-mid';
+  return 'cgpa-low';
+}
+
+function render() {
+  const q  = document.getElementById('search-input').value.toLowerCase();
+  const fb = document.getElementById('filter-branch').value;
+  const fy = document.getElementById('filter-year').value;
+  const sc = document.getElementById('sort-cgpa').value;
+
+  let filtered = students.filter(s => {
+    const mq = !q || s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q) || s.branch.toLowerCase().includes(q);
+    const mb = !fb || s.branch === fb;
+    const my = !fy || s.year === fy;
+    return mq && mb && my;
+  });
+
+  // Sorting
+  if (sc === 'high') filtered.sort((a,b) => (parseFloat(b.cgpa)||0) - (parseFloat(a.cgpa)||0));
+  else if (sc === 'low') filtered.sort((a,b) => (parseFloat(a.cgpa)||0) - (parseFloat(b.cgpa)||0));
+
+  // Update sort arrow
+  const arrow = document.getElementById('sort-arrow');
+  if (sc === 'high') { arrow.textContent = '↓'; arrow.classList.add('active'); }
+  else if (sc === 'low') { arrow.textContent = '↑'; arrow.classList.add('active'); }
+  else { arrow.textContent = '↕'; arrow.classList.remove('active'); }
+
+  const tbody = document.getElementById('table-body');
+  const empty = document.getElementById('empty-state');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = ''; empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    tbody.innerHTML = filtered.map(s => `
+      <tr>
+        <td><span class="td-id">${s.id}</span></td>
+        <td class="td-name">${s.name}</td>
+        <td><span class="td-branch">${s.branch}</span></td>
+        <td>${s.year}</td>
+        <td>${s.email}</td>
+        <td><span class="cgpa-badge ${cgpaClass(s.cgpa)}">${s.cgpa || '—'}</span></td>
+        <td>
+          <div class="td-actions">
+            <button class="btn-edit" onclick="editStudent('${s.id}')">✏️ Edit</button>
+            <button class="btn-del"  onclick="deleteStudent('${s.id}')">🗑 Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // Stats
+  const total    = students.length;
+  const branches = [...new Set(students.map(s=>s.branch))].length;
+  const years    = [...new Set(students.map(s=>s.year))].length;
+  const cgpas    = students.filter(s=>s.cgpa).map(s=>parseFloat(s.cgpa));
+  const avg      = cgpas.length ? (cgpas.reduce((a,b)=>a+b,0)/cgpas.length).toFixed(1) : '—';
+  document.getElementById('s-total').textContent    = total;
+  document.getElementById('s-branches').textContent = branches;
+  document.getElementById('s-years').textContent    = years;
+  document.getElementById('s-avg').textContent      = avg;
+  document.getElementById('student-count').textContent = total;
+
+  renderAchievers();
+}
+
+function renderAchievers() {
+  const ranked = [...students]
+    .filter(s => s.cgpa && !isNaN(parseFloat(s.cgpa)))
+    .sort((a,b) => parseFloat(b.cgpa) - parseFloat(a.cgpa));
+
+  const maxCgpa = ranked.length ? parseFloat(ranked[0].cgpa) : 10;
+
+  // PODIUM top 3
+  const podium = document.getElementById('podium');
+  if (ranked.length === 0) { podium.innerHTML = ''; }
+  else {
+    const medals = ['🥇','🥈','🥉'];
+    const rankClass = ['rank1','rank2','rank3'];
+    podium.innerHTML = ranked.slice(0,3).map((s,i) => `
+      <div class="podium-card ${rankClass[i]}">
+        ${i===0 ? '<div class="crown">👑</div>' : ''}
+        <div class="rank-badge">${medals[i]}</div>
+        <div class="podium-name">${s.name}</div>
+        <div class="podium-branch">${s.branch} · ${s.year}</div>
+        <div class="podium-cgpa">${s.cgpa}</div>
+        <div class="cgpa-cgpa-lbl" style="font-size:0.7rem;color:var(--ink2);letter-spacing:1px;text-transform:uppercase;margin-top:0.2rem;">CGPA</div>
+      </div>
+    `).join('');
+  }
+
+  // FULL RANKED TABLE
+  const tbody  = document.getElementById('achievers-body');
+  const aEmpty = document.getElementById('achievers-empty');
+
+  if (ranked.length === 0) {
+    tbody.innerHTML = ''; aEmpty.style.display = 'block'; return;
+  }
+  aEmpty.style.display = 'none';
+
+  const rankClass2 = (i) => i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+  const medalEmoji = (i) => i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+  const barWidth   = (cgpa) => ((parseFloat(cgpa)/10)*100).toFixed(1);
+
+  tbody.innerHTML = ranked.map((s,i) => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <div class="rank-num ${rankClass2(i)}">${i+1}</div>
+          <span class="medal">${medalEmoji(i)}</span>
+        </div>
+      </td>
+      <td>
+        <div style="font-weight:500;color:var(--ink)">${s.name}</div>
+        <div style="font-size:0.75rem;color:var(--ink2);font-weight:300;">${s.id}</div>
+      </td>
+      <td><span class="td-branch">${s.branch}</span></td>
+      <td style="color:var(--ink2);font-size:0.88rem;">${s.year}</td>
+      <td>
+        <div class="cgpa-bar-wrap">
+          <span class="cgpa-badge ${cgpaClass(s.cgpa)}">${s.cgpa}</span>
+          <div class="cgpa-bar-bg">
+            <div class="cgpa-bar-fill" style="width:${barWidth(s.cgpa)}%"></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function toggleCgpaSort() {
+  const sel = document.getElementById('sort-cgpa');
+  if (sel.value === '' || sel.value === 'low') sel.value = 'high';
+  else sel.value = 'low';
+  render();
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-records').style.display   = tab==='records'  ? 'block' : 'none';
+  document.getElementById('tab-achievers').style.display = tab==='achievers' ? 'block' : 'none';
+  document.getElementById('tab-btn-records').classList.toggle('active',   tab==='records');
+  document.getElementById('tab-btn-achievers').classList.toggle('active', tab==='achievers');
+  if (tab==='achievers') renderAchievers();
+}
+
+function openModal(mode='add') {
+  document.getElementById('modal-title').textContent = mode==='edit' ? 'Edit Student' : 'Add Student';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  ['f-id','f-name','f-email','f-phone','f-cgpa'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('f-branch').value='';
+  document.getElementById('f-year').value='';
+  editingId = null;
+}
+function saveStudent() {
+  const id=document.getElementById('f-id').value.trim();
+  const name=document.getElementById('f-name').value.trim();
+  const branch=document.getElementById('f-branch').value;
+  const year=document.getElementById('f-year').value;
+  const email=document.getElementById('f-email').value.trim();
+  const phone=document.getElementById('f-phone').value.trim();
+  const cgpa=document.getElementById('f-cgpa').value.trim();
+  if (!id||!name||!branch||!year||!email) { showToast('Please fill all required fields!','❌'); return; }
+  if (editingId) {
+    const idx=students.findIndex(s=>s.id===editingId);
+    students[idx]={id,name,branch,year,email,phone,cgpa};
+    showToast('Student updated successfully! ✅');
+  } else {
+    if (students.find(s=>s.id===id)) { showToast('Student ID already exists!','❌'); return; }
+    students.push({id,name,branch,year,email,phone,cgpa});
+    showToast('Student added successfully! ✅');
+  }
+  save(); render(); closeModal();
+}
+function editStudent(id) {
+  const s=students.find(s=>s.id===id); if(!s) return;
+  editingId=id;
+  document.getElementById('f-id').value=s.id;
+  document.getElementById('f-name').value=s.name;
+  document.getElementById('f-branch').value=s.branch;
+  document.getElementById('f-year').value=s.year;
+  document.getElementById('f-email').value=s.email;
+  document.getElementById('f-phone').value=s.phone;
+  document.getElementById('f-cgpa').value=s.cgpa;
+  openModal('edit');
+}
+function deleteStudent(id) {
+  if(!confirm('Delete this student record?')) return;
+  students=students.filter(s=>s.id!==id);
+  save(); render();
+  showToast('Student deleted. 🗑');
+}
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+document.getElementById('search-input').addEventListener('input', render);
+document.getElementById('filter-branch').addEventListener('change', render);
+document.getElementById('filter-year').addEventListener('change', render);
+document.getElementById('sort-cgpa').addEventListener('change', render);
+document.getElementById('modal-overlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+
+render();
+</script>
+</body>
+</html>
